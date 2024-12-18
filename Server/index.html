@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self';">
+    <title>Hello World!</title>
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        background-color: #f4f4f4;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .bar-container {
+        position: relative;
+        width: 300px;
+        height: 30px;
+        background-color: #ddd;
+        border-radius: 15px;
+    }
+
+    .indicator {
+        position: absolute;
+        top: 0;
+        width: 10px;
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 10px;
+        transition: left 0.1s ease;
+    }
+
+    .label {
+        text-align: center;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .bar-name {
+        text-align: center;
+    }
+</style>
+
+<body>
+    <h1>Hello World!</h1>
+    <p id="connection-status">Disconnected</p>
+    <div class="container">
+        <div class="bar-name">Throttle</div>
+        <div class="bar-container" id="throttle-bar">
+            <div class="indicator" id="throttle-indicator"></div>
+        </div>
+
+        <div class="bar-name">Steering</div>
+        <div class="bar-container" id="steering-bar">
+            <div class="indicator" id="steering-indicator"></div>
+        </div>
+
+        <div class="bar-name">Steering offset</div>
+        <div class="bar-container" id="offset-bar">
+            <div class="indicator" id="offset-indicator"></div>
+        </div>
+    </div>
+    <script src="./renderer.js"></script>
+</body>
+
+</html>
