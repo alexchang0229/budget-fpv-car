@@ -14,13 +14,11 @@ const uint16_t ws_port = WS_PORT;
 // Define the PWM channel, frequency, resolution, and pin
 const int MotorPin = MOTOR_PIN; // PWM pin for motor control
 const int servoPin = SERVO_PIN; // Servo control pin
-const int lightsPin = LIGHTS_PIN;
 
 unsigned long currentMillis;
 unsigned long prevMessageMillis = millis(); // Stores the last time a websocket message was recieved
 unsigned long prevPingMillis = 0;           // Stores the last time a websocket message was recieved
 
-bool lightState = LOW; // Initial state of the light
 
 Servo steeringServo; // Create Servo object
 Servo MotorServo;    // Create Servo object
@@ -53,8 +51,6 @@ void setup()
 
   MotorServo.writeMicroseconds(1500); // Neutral signal
 
-  pinMode(lightsPin, OUTPUT);
-
   connectWebsocket();
 }
 
@@ -70,17 +66,17 @@ void loop()
     webSocket.sendTXT("ping");
     prevPingMillis = currentMillis;
   }
-  if (currentMillis - prevMessageMillis > 3000)
-  {
-    // if more than 2 seconds have elapsed since last websocket message, stop motor
-    MotorServo.write(90);
-    if (webSocket.isConnected())
-    {
-      // When the network changes the websocket doesn't disconnect properly, disconnect here when no more heart beat
-      webSocket.disconnect();
-      prevMessageMillis = currentMillis;
-    }
-  }
+//  if (currentMillis - prevMessageMillis > 3000)
+//  {
+//    // if more than 2 seconds have elapsed since last websocket message, stop motor
+//    MotorServo.write(90);
+//    if (webSocket.isConnected())
+//    {
+//      // When the network changes the websocket doesn't disconnect properly, disconnect here when no more heart beat
+//      webSocket.disconnect();
+//      prevMessageMillis = currentMillis;
+//    }
+//  }
 }
 
 int lastMotorSpeedMicroseconds = 90; // Start at neutral
