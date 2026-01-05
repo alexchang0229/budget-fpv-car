@@ -2,6 +2,40 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import WebSocket, { WebSocketServer } from 'ws';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+const CONFIG_PATH = path.join(app.getPath('userData'), 'gamepad-config.json');
+const DEFAULT_CONFIG = {
+    throttleIndex: 7,
+    reverseIndex: 6,
+    steeringIndex: 0,
+    steerOffsetRightIndex: 14,
+    steerOffsetLeftIndex: 15
+};
+
+// Load or create config
+function loadConfig() {
+    try {
+        if (fs.existsSync(CONFIG_PATH)) {
+            return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+        }
+    } catch (err) {
+        console.error('Error loading config:', err);
+    }
+    return DEFAULT_CONFIG;
+}
+
+// Save config
+function saveConfig(config) {
+    try {
+        console.log(CONFIG_PATH)
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+        return true;
+    } catch (err) {
+        console.error('Error saving config:', err);
+        return false;
+    }
+}
 
 let isConnected = false;
 let win;
@@ -29,6 +63,15 @@ app.whenReady().then(() => {
     var throttle = 90;
     var steering = 90;
 
+    // IPC handlers for gamepad config
+    ipcMain.handle('load-gamepad-config', () => {
+        return loadConfig();
+    });
+
+    ipcMain.handle('save-gamepad-config', (_event, config) => {
+        return saveConfig(config);
+    });
+
     ipcMain.on('gamepad-data', (event, data) => {
         const { throttle, steering, steeringOffset } = data;
         // console.log(`Gamepad Throttle: ${throttle}, Steering: ${steering}, offset: ${steeringOffset}`);
@@ -48,12 +91,36 @@ app.whenReady().then(() => {
     };
 
     wss.on('connection', function connection(ws) {
+        console.log('Client connected');
         updateConnectionStatus();
-        ws.on('close', updateConnectionStatus)
+
+        // Track heartbeat
+        ws.isAlive = true;
+        ws.lastHeartbeat = Date.now();
+
+        // Check heartbeat every second
+        const heartbeatInterval = setInterval(() => {
+            const timeSinceLastHeartbeat = Date.now() - ws.lastHeartbeat;
+            if (timeSinceLastHeartbeat > 5000) {
+                console.log('Client heartbeat timeout - disconnecting');
+                clearInterval(heartbeatInterval);
+                ws.terminate();
+            }
+        }, 1000);
+
+        ws.on('close', () => {
+            console.log('Client disconnected');
+            clearInterval(heartbeatInterval);
+            updateConnectionStatus();
+        });
+
         ws.on('error', console.error);
+
         ws.on('message', function message(data, isBinary) {
             const message = isBinary ? data : data.toString();
             if (message == "ping") {
+                ws.isAlive = true;
+                ws.lastHeartbeat = Date.now();
                 ws.send("pong");
             }
         });
