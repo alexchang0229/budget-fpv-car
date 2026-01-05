@@ -6,31 +6,38 @@ contextBridge.exposeInMainWorld('api', {
     sendKeyupEvent: (keyData) => ipcRenderer.send('keyup-event', keyData),
 });
 
+contextBridge.exposeInMainWorld('configAPI', {
+    loadGamepadConfig: () => ipcRenderer.invoke('load-gamepad-config'),
+    saveGamepadConfig: (config) => ipcRenderer.invoke('save-gamepad-config', config)
+});
 
-// Gamepad buttons
-const throttleIndex = 7;
-const reverseIndex = 6;
-const steeringIndex = 0;
-const steerOffsetRightIndex = 14;
-const steerOffsetLeftIndex = 15;
-
+// Gamepad config variable
+let gamepadConfig = null;
 var steeringOffset = 0;
+
+// Load gamepad config
+async function loadGamepadConfig() {
+    gamepadConfig = await ipcRenderer.invoke('load-gamepad-config');
+}
+
+// Initialize config on load
+loadGamepadConfig();
 
 
 contextBridge.exposeInMainWorld('gamepadAPI', {
     startPolling: () => {
         const pollGamepad = () => {
             const gamepads = navigator.getGamepads();
-            if (gamepads[0]) { // Assuming the first gamepad
+            if (gamepads[0] && gamepadConfig) { // Assuming the first gamepad
                 const { axes, buttons } = gamepads[0];
 
-                const throttle = Math.round(buttons[throttleIndex].value * 70 + buttons[reverseIndex].value * -70 + 90); //map throttle to 20-160
-                const steering = Math.round((((-axes[steeringIndex] + 1) / 2) * 170)); // map steering to 0-180
+                const throttle = Math.round(buttons[gamepadConfig.throttleIndex].value * 70 + buttons[gamepadConfig.reverseIndex].value * -70 + 90); //map throttle to 20-160
+                const steering = Math.round((((-axes[gamepadConfig.steeringIndex] + 1) / 2) * 170)); // map steering to 0-180
                 var _steeringOffset = 0
-                if (buttons[steerOffsetRightIndex].pressed == true) {
+                if (buttons[gamepadConfig.steerOffsetRightIndex]?.pressed == true) {
                     _steeringOffset = 0.5
                 }
-                if (buttons[steerOffsetLeftIndex].pressed == true) {
+                if (buttons[gamepadConfig.steerOffsetLeftIndex]?.pressed == true) {
                     _steeringOffset = -0.5
                 }
                 if (_steeringOffset) {
@@ -44,5 +51,27 @@ contextBridge.exposeInMainWorld('gamepadAPI', {
             requestAnimationFrame(pollGamepad);
         };
         pollGamepad();
+    },
+
+    // Get raw gamepad state for settings page
+    getGamepadState: () => {
+        const gamepads = navigator.getGamepads();
+        if (gamepads[0]) {
+            const { axes, buttons } = gamepads[0];
+            return {
+                axes: Array.from(axes).map((value, index) => ({ index, value })),
+                buttons: Array.from(buttons).map((button, index) => ({
+                    index,
+                    value: button.value,
+                    pressed: button.pressed
+                }))
+            };
+        }
+        return null;
+    },
+
+    // Reload config after saving
+    reloadConfig: async () => {
+        await loadGamepadConfig();
     }
 });
