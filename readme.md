@@ -1,6 +1,8 @@
 ## What?
 This project is for a budget friendly, unlimited control range, FPV car.
 
+![Truck gif](truck.gif)
+
 Bill of materials:
 | Item | Price ($CAD) | Link |
 |---|---|---|
@@ -9,7 +11,6 @@ Bill of materials:
 | RC car ESC for WPLC14 | 20 | [Amazon](https://www.amazon.ca/gp/product/B08FBVBKGN/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1) |
 | Your old phone | Free.99 | Check your drawers |
 | Solder iron | Free.99 | Check tool box |
-| 1 transistor PNP | Free.99 | Check under mattress |
 | Hook-up wires | Free.99 | Check night stand #1 |
 | Perfboard | Free.99 | Check drawers |
 | Xbox controller or Sim racing wheel (optional) | 50 | Facebook marketplace
